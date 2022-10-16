@@ -1,6 +1,10 @@
 package v1
 
-import "strings"
+import (
+	"strings"
+
+	"golang.org/x/exp/slices"
+)
 
 func ConvertToRoman(arabic int) string {
 	var result strings.Builder
@@ -15,12 +19,60 @@ func ConvertToRoman(arabic int) string {
 	return result.String()
 }
 
+func ConvertToArabic(roman string) (total int) {
+	for _, symbols := range windowedRoman(roman).Symbols() {
+		total += allRomanNumerals.ValueOf(symbols...)
+	}
+	return
+}
+
 type RomanNumeral struct {
 	Value  int
 	Symbol string
 }
 
-var allRomanNumerals = []RomanNumeral{
+type romanNumerals []RomanNumeral
+
+func (r romanNumerals) ValueOf(symbols ...byte) int {
+	symbol := string(symbols)
+	for _, s := range r {
+		if s.Symbol == symbol {
+			return s.Value
+		}
+	}
+	return 0
+}
+
+func (r romanNumerals) Exists(symbols ...byte) bool {
+	symbol := string(symbols)
+	for _, s := range r {
+		if s.Symbol == symbol {
+			return true
+		}
+	}
+	return false
+}
+
+type windowedRoman string
+
+func (w windowedRoman) Symbols() (symbols [][]byte) {
+	for i := 0; i < len(w); i++ {
+		symbol := w[i]
+		notAtEnd := i+1 < len(w)
+
+		subtractive := []string{"I", "X", "C"}
+
+		if notAtEnd && slices.Contains(subtractive, string(symbol)) && allRomanNumerals.Exists(symbol, w[i+1]) {
+			symbols = append(symbols, []byte{symbol, w[i+1]})
+			i++
+		} else {
+			symbols = append(symbols, []byte{symbol})
+		}
+	}
+	return
+}
+
+var allRomanNumerals = romanNumerals{
 	{1000, "M"},
 	{900, "CM"},
 	{500, "D"},
