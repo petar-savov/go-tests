@@ -83,7 +83,6 @@ func TestMinuteHandPoint(t *testing.T) {
 		})
 	}
 }
-
 func TestHoursInRadians(t *testing.T) {
 	cases := []struct {
 		time  time.Time
