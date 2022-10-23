@@ -28,7 +28,7 @@ func SumAll(numbersToSum ...[]int) []int {
 	return sums
 }
 
-func Reduce[A any](collection []A, accumulator func(A, A) A, initialValue A) A {
+func Reduce[A, B any](collection []A, accumulator func(B, A) B, initialValue B) B {
 	var result = initialValue
 	for _, x := range collection {
 		result = accumulator(result, x)
@@ -43,14 +43,23 @@ type Transaction struct {
 }
 
 func BalanceFor(transactions []Transaction, name string) float64 {
-	var balance float64
-	for _, t := range transactions {
+	adjustBalance := func(currentBalance float64, t Transaction) float64 {
 		if t.From == name {
-			balance -= t.Sum
+			return currentBalance - t.Sum
 		}
 		if t.To == name {
-			balance += t.Sum
+			return currentBalance + t.Sum
+		}
+		return currentBalance
+	}
+	return Reduce(transactions, adjustBalance, 0.0)
+}
+
+func Find[A any](items []A, predicate func(A) bool) (value A, found bool) {
+	for _, v := range items {
+		if predicate(v) {
+			return v, true
 		}
 	}
-	return balance
+	return
 }
